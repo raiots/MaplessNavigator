@@ -12,7 +12,7 @@ from geometry_msgs.msg import Twist
 from gazebo_msgs.srv import SetModelState
 import sys
 sys.path.append('../../')
-from training.utility import *
+from scripts.utility import *
 
 
 class RandEvalGpu:

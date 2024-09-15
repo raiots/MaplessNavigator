@@ -12,7 +12,7 @@ import sys
 sys.path.append('../../')
 from evaluation.loihi_network.utility import robot_2_goal_dis_dir, \
     robot_state_2_loihi_spike_prob, loihi_spikes_2_robot_action, combine_multiple_into_one_int
-from training.utility import *
+from scripts.utility import *
 
 
 class RandEvalLoihi:

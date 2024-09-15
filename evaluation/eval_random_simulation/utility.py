@@ -7,8 +7,8 @@ import math
 from shapely.geometry import Point, Polygon
 import sys
 sys.path.append('../../')
-from training.train_ddpg.ddpg_networks import ActorNet
-from training.train_spiking_ddpg.sddpg_networks import ActorNetSpiking
+from scripts.train_ddpg.ddpg_networks import ActorNet
+from scripts.train_spiking_ddpg.sddpg_networks import ActorNetSpiking
 
 
 def load_test_actor_network(dir, state_num=22, action_num=2, dim=(256, 256, 256)):

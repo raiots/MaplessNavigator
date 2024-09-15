@@ -8,6 +8,7 @@ The following figure shows an overview of the proposed method:
 ![](overview.png "overview of method")
 
 The paper has been accepted at IROS 2020. 
+
 The arXiv preprint is available [here](https://arxiv.org/abs/2003.01157).
 The IEEE Xplore published version is available [here](https://ieeexplore.ieee.org/abstract/document/9340948).
 

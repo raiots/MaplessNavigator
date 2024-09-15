@@ -6,9 +6,9 @@ import sys
 import pickle
 
 sys.path.append('../../')
-from training.train_ddpg.ddpg_agent import Agent
-from training.environment import GazeboEnvironment
-from training.utility import *
+from scripts.train_ddpg.ddpg_agent import Agent
+from scripts.environment import GazeboEnvironment
+from scripts.utility import *
 
 
 def train_ddpg(run_name="DDPG_R1", exp_name="Rand_R1", episode_num=(100, 200, 300, 400),
