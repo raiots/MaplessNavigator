@@ -3,54 +3,36 @@ import torch.nn as nn
 
 
 class ActorNet(nn.Module):
-    """ Actor Network """
-    def __init__(self, state_num, action_num, hidden1=256, hidden2=256, hidden3=256):
-        """
-
-        :param state_num: number of states
-        :param action_num: number of actions
-        :param hidden1: hidden layer 1 dimension
-        :param hidden2: hidden layer 2 dimension
-        :param hidden3: hidden layer 3 dimension
-        """
+    """ Actor """
+    def __init__(self, in_size, out_size, h1=256, h2=256, h3=256):
         super(ActorNet, self).__init__()
-        self.fc1 = nn.Linear(state_num, hidden1)
-        self.fc2 = nn.Linear(hidden1, hidden2)
-        self.fc3 = nn.Linear(hidden2, hidden3)
-        self.fc4 = nn.Linear(hidden3, action_num)
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
+        self.l1 = nn.Linear(in_size, h1)
+        self.l2 = nn.Linear(h1, h2)
+        self.l3 = nn.Linear(h2, h3)
+        self.l4 = nn.Linear(h3, out_size)
+        self.r = nn.ReLU()
+        self.s = nn.Sigmoid()
 
     def forward(self, x):
-        x = self.relu(self.fc1(x))
-        x = self.relu(self.fc2(x))
-        x = self.relu(self.fc3(x))
-        out = self.sigmoid(self.fc4(x))
-        return out
+        x = self.r(self.l1(x))
+        x = self.r(self.l2(x))
+        x = self.r(self.l3(x))
+        return self.s(self.l4(x))
 
 
 class CriticNet(nn.Module):
-    """ Critic Network"""
-    def __init__(self, state_num, action_num, hidden1=512, hidden2=512, hidden3=512):
-        """
+    def __init__(self, state_size, action_size, h1=512, h2=512, h3=512):
 
-        :param state_num: number of states
-        :param action_num: number of actions
-        :param hidden1: hidden layer 1 dimension
-        :param hidden2: hidden layer 2 dimension
-        :param hidden3: hidden layer 3 dimension
-        """
         super(CriticNet, self).__init__()
-        self.fc1 = nn.Linear(state_num, hidden1)
-        self.fc2 = nn.Linear(hidden1 + action_num, hidden2)
-        self.fc3 = nn.Linear(hidden2, hidden3)
-        self.fc4 = nn.Linear(hidden3, 1)
-        self.relu = nn.ReLU()
+        self.l1 = nn.Linear(state_size, h1)
+        self.l2 = nn.Linear(h1 + action_size, h2)
+        self.l3 = nn.Linear(h2, h3)
+        self.l4 = nn.Linear(h3, 1)
+        self.r = nn.ReLU()
 
-    def forward(self, xa):
-        x, a = xa
-        x = self.relu(self.fc1(x))
-        x = self.relu(self.fc2(torch.cat([x, a], 1)))
-        x = self.relu(self.fc3(x))
-        out = self.fc4(x)
-        return out
+    def forward(self, stuff):
+        x, a = stuff
+        x = self.r(self.l1(x))
+        x = self.r(self.l2(torch.cat([x, a], 1)))
+        x = self.r(self.l3(x))
+        return self.l4(x)
