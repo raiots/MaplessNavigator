@@ -1,254 +1,101 @@
-# Spiking Neural Network for Mapless Navigation #
+# 基于深度强化学习的机器人无地图导航系统
 
-This package is the PyTorch implementation of the **S**piking **D**eep **D**eterministic **P**olicy **G**radient (**SDDPG**) framework.
-The hybrid framework trains a spiking neural network (SNN) for energy-efficient mapless navigation on Intel's Loihi neuromorphic processor.
+这个项目实现了一个基于ROS (Robot Operating System)和深度强化学习的机器人无地图导航系统。该系统使用DDPG (Deep Deterministic Policy Gradient)算法来训练机器人在未知环境中进行导航。
 
-The following figure shows an overview of the proposed method:
+## 主要特性
 
-![](overview.png "overview of method")
+- 使用DDPG算法训练机器人导航策略
+- 支持在Gazebo仿真环境中训练和评估
+- 可以部署到实际的Turtlebot2机器人上
+- 包含标准DDPG的实现
+- 使用ROS进行机器人控制和传感器数据处理
+- 支持激光雷达和里程计数据输入
 
-The paper has been accepted at IROS 2020. 
+## 系统要求
 
-The arXiv preprint is available [here](https://arxiv.org/abs/2003.01157).
-The IEEE Xplore published version is available [here](https://ieeexplore.ieee.org/abstract/document/9340948).
+- ROS Kinetic 
+- Gazebo 7或更高版本
+- Python 3
+- PyTorch
+- NumPy
+- Shapely
 
-**New**: We have created a new GitHub repo to demonstrate the online runtime interaction with Loihi. If you are interested in using Loihi for real-time robot control, please [check it out](https://github.com/michaelgzt/loihi-control-loop-demo).
+## 安装
 
-## Citation ##
+1. 克隆此仓库到您的catkin工作空间的src目录:
 
-G. Tang, N. Kumar and K. P. Michmizos, **"Reinforcement co-Learning of Deep and Spiking Neural Networks for Energy-Efficient Mapless Navigation with Neuromorphic Hardware,"** 2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2020, pp. 6090-6097, doi: 10.1109/IROS45743.2020.9340948.
+2. 编译ROS包:
 
-```bibtex
-@inproceedings{tang2020reinforcement,
-  author={Tang, Guangzhi and Kumar, Neelesh and Michmizos, Konstantinos P.},
-  booktitle={2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)}, 
-  title={Reinforcement co-Learning of Deep and Spiking Neural Networks for Energy-Efficient Mapless Navigation with Neuromorphic Hardware}, 
-  year={2020},
-  pages={6090-6097},
-  doi={10.1109/IROS45743.2020.9340948}}
 ```
-
-## Software Installation ##
-
-#### 1. Basic Requirements
-
-* Ubuntu 16.04
-* Python 3.5.2
-* ROS Kinetic (with Gazebo 7.0)
-* PyTorch 1.2 (with CUDA 10.0 and tensorboard 2.1)
-* NxSDK 0.9
-
-ROS Kinetic is not compatible with Python 3 by default, if you have issues with using Python 3 with ROS, please follow this [link](https://medium.com/@beta_b0t/how-to-setup-ros-with-python-3-44a69ca36674) to resolve them. We use the default Python 2 environment to execute `roslaunch` and `rosrun`.
-
-A CUDA enabled GPU is not required but preferred for training within the SDDPG framework. 
-The results in the paper are generated from models trained using both Nvidia Tesla K40c and Nvidia GeForce RTX 2080Ti.
-
-Intel's neuromorphic library NxSDK is only required for SNN deployment on Loihi. 
-If you are interested in deploying the trained SNN on Loihi, please contact the [Intel Neuromorphic Lab](https://www.intel.com/content/www/us/en/research/neuromorphic-community.html).
-
-We have provided the `requirements.txt` for the python environment without NxSDK. In addition, we recommend setting up the environment using [virtualenv](https://pypi.org/project/virtualenv/).
-
-#### 2. Simulation Setup
-
-The simulation environment simulates a Turtlebot2 robot with a 360 degree LiDAR in the Gazebo simulator.
-
-Turtlebot2 dependency can be installed using:
-
-```bash
-sudo apt-get install ros-kinetic-turtlebot-*
-```
-
-We use the Hokuyo LiDAR model in the simulation and set the parameters to be the same as the RPLIDAR S1.
-LiDAR dependency can be installed using:
-
-```bash
-sudo apt-get install ros-kinetic-urg-node
-```
-
-Download the project and compile the catkin workspace:
-
-```bash
-cd <Dir>/<Project Name>/ros/catkin_ws
+cd ~/catkin_ws
 catkin_make
 ```
 
-Add the following line to your `~/.bashrc` in order for ROS environment to setup properly:
+3. 安装Python依赖:
 
-```bash
-source <Dir>/<Project Name>/ros/catkin_ws/devel/setup.bash
-export TURTLEBOT_3D_SENSOR="hokuyo"
+```
+pip install torch numpy shapely
 ```
 
-Run `source ~/.bashrc` afterward and test the environment setup by running (use Python 2 environment):
+## 使用方法
 
-```bash
-roslaunch turtlebot_lidar turtlebot_world.launch
+1. 启动Gazebo仿真环境:
+
+```
+roslaunch turtlebot_gazebo turtlebot_world.launch
 ```
 
-You should able to see the Turtlebot2 with a LiDAR on the top.
+2. 运行DDPG训练脚本:
 
-#### 3. Real-world Setup
 
-We install the [RPLIDAR S1](https://www.slamtec.com/en/Lidar/S1) on the center of the top level of Turtlebot2.
-To use the LiDAR with ROS, you need to download and install the rplidar_ros library from [here](https://github.com/robopeak/rplidar_ros) on the laptop controlling Turtlebot2.
-
-After installing the library, you need to add the LiDAR to the tf tree.
-This can be done by adding a tf publisher node in `minimal.launch` from `turtlebot_bringup` package:
-
-```xml
-<node name="base2laser" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 1 0 /base_link /laser 50">
+```13:22:scripts/train_ddpg/train_ddpg.py
+def do_training(run_name="DDPG_R1", exp_name="Rand_R1", episode_num=(100, 200, 300, 400),
+               iteration_num_start=(200, 300, 400, 500), iteration_num_step=(1, 2, 3, 4),
+               iteration_num_max=(1000, 1000, 1000, 1000),
+               max_speed=0.5, min_speed=0.05, save_steps=10000,
+               env_epsilon=(0.9, 0.6, 0.6, 0.6), env_epsilon_decay=(0.999, 0.9999, 0.9999, 0.9999),
+               laser_half_num=9, laser_min_dis=0.35, scan_overall_num=36, goal_dis_min_dis=0.3,
+               obs_reward=-20, goal_reward=30, goal_dis_amp=15, goal_th=0.5, obs_th=0.35,
+               state_num=22, action_num=2, is_pos_neg=False, is_poisson=False, poisson_win=50,
+               memory_size=100000, batch_size=256, epsilon_end=0.1, rand_start=10000, rand_decay=0.999,
+               rand_step=2, target_tau=0.01, target_step=1, use_cuda=True):
 ```
 
-Test the setup by running (use Python 2 environment):
 
-```bash
-roslaunch turtlebot_bringup minimal.launch
+3. 评估训练好的模型:
+
+
+```182:202:evaluation/eval_real_world/run_ddpg_eval_rw.py
+if __name__ == "__main__":
+    WEIGHT_FILE = '../saved_model/ddpg_poisson.pt'
+    GOAL_LIST = [[7.3, 2.5], [7.7, -3], [5.3, -5], [0, -5.2], [2.0, -9.2], [11.4, -9.2],
+                 [13, -6], [11, -4.5], [13.5, -10], [10, -13.5], [7, -17], [1, -17], [0.5, -15.2], [7, -13.2], [0, -12.7]]
+    USE_CUDA = True
+    IS_POS_NEG = True
+    IS_POISSON = True
+    STATE_NUM = 18 + 4
+    if IS_POS_NEG:
+        RESCALE_STATE_NUM = STATE_NUM + 2
+    else:
+        RESCALE_STATE_NUM = STATE_NUM
+    ACTION_NUM = 2
+    POISSON_WIN = 50
+    RAND_END = 0.01
+    agent = Agent(STATE_NUM, ACTION_NUM, RESCALE_STATE_NUM, poisson_window=POISSON_WIN, use_poisson=IS_POISSON,
+                  epsilon_end=RAND_END, use_cuda=USE_CUDA)
+    agent.load(WEIGHT_FILE)
+    sim_time = 400
+    ros_node = RosNode(agent, GOAL_LIST, sim_time, is_pos_neg=IS_POS_NEG)
+    record_pos, record_time, record_dis = ros_node.run_ros()
 ```
 
-and
 
-```bash
-roslaunch rplidar_ros rplidar_s1.launch
-```
+## 项目结构
 
-in separate terminals on the laptop controlling Turtlebot2.
-
-## Example Usage ##
-
-#### 1. Training SDDPG ####
-
-To train the SDDPG, you need to first launch the training world including 4 different environments (use Python 2 environment and absolute path for `<Dir>`):
-
-```bash
-roslaunch turtlebot_lidar turtlebot_world.launch world_file:=<Dir>/<Project Name>/ros/worlds/training_worlds.world
-```
-
-Then, run the `laserscan_simple` ros node in a separate terminal to sample laser scan data every 10 degrees (use Python 2 environment):
-
-```bash
-rosrun simple_laserscan laserscan_simple
-```
-
-Now, we have all ros prerequisites for training. Execute the following commands to start the training in a new terminal (use Python 3 environment):
-
-```bash
-source <Dir to Python 3 Virtual Env>/bin/activate
-cd <Dir>/<Project Name>/training/train_spiking_ddpg
-python train_sddpg.py --cuda 1 --step 5
-```
-
-This will automatically train 1000 episodes in the training environments and save the trained parameters every 10k steps.
-Intermediate training results are also saved through tensorboard.
-
-If you want to perform the training on CPU, you can set `--cuda` to 0. 
-You can also train for different inference timesteps of SNN by setting `--step` to the desired number. 
-
-In addition, we also have the state-of-the-art DDPG implementation that trains a non-spiking deep actor network for mapless navigation.
-If you want to train the DDPG network, run the following commands to start the training in a new terminal (use Python 3 environment):
-
-```bash
-source <Dir to Python 3 Virtual Env>/bin/activate
-cd <Dir>/<Project Name>/training/train_ddpg
-python train_ddpg.py --cuda 1
-```
-
-#### 2. Evaluate in simulated environment ####
-
-To evaluate the trained Spiking Actor Network (SAN) in Gazebo, you need to first launch the evaluation world (use Python 2 environment and absolute path for `<Dir>`):
-
-```bash
-roslaunch turtlebot_lidar turtlebot_world.launch world_file:=<Dir>/<Project Name>/ros/worlds/evaluation_world.world
-```
-
-Then, run the `laserscan_simple` ros node in a separate terminal to sample laser scan data every 10 degrees (use Python 2 environment):
-
-```bash
-rosrun simple_laserscan laserscan_simple
-```
-
-Now, we have all ros prerequisites for evaluation. Run the following commands to start the evaluation in a new terminal (use Python 3 environment):
-
-```bash
-source <Dir to Python 3 Virtual Env>/bin/activate
-cd <Dir>/<Project Name>/evaluation/eval_random_simulation
-python run_sddpg_eval.py --save 0 --cuda 1 --step 5
-```
-
-This will automatically navigate the robot for 200 randomly generate start and goal positions. 
-The full evaluation will cost more than 2 hours.
-
-If you want to perform the evaluation on CPU, you can set `--cuda` to 0. 
-You can also evaluate for different inference timesteps of SNN by setting `--step` to the desired number.
-
-To deploy the trained SAN on Loihi and evaluate in Gazebo, you need to have the Loihi hardware. 
-If you have the Kapoho Bay USB chipset, run the following commands to start the evaluation (use Python 3 environment):
-
-```bash
-source <Dir to Python 3 Virtual Env>/bin/activate
-cd <Dir>/<Project Name>/evaluation/eval_random_simulation_loihi
-KAPOHOBAY=1 python run_sddpg_loihi_eval.py --save 0 --step 5
-```
-
-You can also evaluate for different inference timesteps of SNN by setting `--step` to the desired number.
-In addition, you also need to change the `epoch` value in the `<Project Name>/evaluation/loihi_network/snip/encoder.c` file corresponding to the inference timesteps.
-
-For both evaluations, you can set `--save` to 1 to save the robot routes and time.
-These running histories are then used to generate the results shown in the paper. 
-Run the following commands to evaluate the history by yourself (use Python 3 environment):
-
-```bash
-source <Dir to Python 3 Virtual Env>/bin/activate
-cd <Dir>/<Project Name>/evaluation/result_analyze
-python generate_results.py
-```
-
-You should be able to get the following results for evaluating the SAN on GPU with T=5:
-
-```bash
-sddpg_bw_5 random simulation results:
-Success:  198  Collision:  2  Overtime:  0
-Average Path Distance of Success Routes:  18.539 m
-Average Path Time of Success Routes:  42.519 s
-```
-
-![](eval_result.png "overview of method")
-
-with red dot as goal positions, blue dot as start positions, and red cross as collision positions.
-
-#### 3. Evaluate in real-world environment ####
-
-Our implementation of real-world evaluate relies on the **amcl** to localize the robot and generate relative goal positions.
-Therefore, to evaluate the trained SNN in real-world environment, you have to first generate a map of the environment using GMapping (use Python 2 environment):
-
-```bash
-roslaunch turtlebot_lidar gmapping_lplidar_demo.launch
-```
-
-Then, you can use the saved map to localize the robot's pose (use Python 2 environment):
-
-```bash
-roslaunch turtlebot_lidar amcl_lplidar_demo.launch map_file:=<Dir to map>
-```
-
-You can view the robot navigation using **rviz** by running in a separate terminal (use Python 2 environment):
-
-```bash
-roslaunch turtlebot_rviz_launchers view_navigation.launch
-```
-
-After verifying that the robot can correctly localize itself in the environment, you can start to evaluate the trained SNN.
-Here, we only support the evaluation on Loihi.
-To deploy the trained SNN on Loihi, you need to have the Loihi hardware.
-If you have the Kapoho Bay USB chipset, run the following commands to start the evaluation (use Python 3 environment):
-
-```bash
-source <Dir to Python 3 Virtual Env>/bin/activate
-cd <Dir>/<Project Name>/evaluation/eval_real_world
-KAPOHOBAY=1 python run_sddpg_loihi_eval_rw.py
-```
-
-For your own environment, remember to change the `GOAL_LIST` in the evaluation script to the appropriate goal positions for the environment.
-
-### Acknowledgment ###
-
-This work is supported by Intel's Neuromorphic Research Community Grant Award.
+- ros/catkin_ws: ROS工作空间
+  - turtlebot_description: Turtlebot机器人的3D模型描述
+  - simple_laserscan: 处理激光扫描数据的ROS包
+- scripts: 主要的训练和环境代码
+  - train_ddpg: DDPG训练相关代码
+  - environment.py: Gazebo环境交互代码
+- evaluation: 评估相关代码
